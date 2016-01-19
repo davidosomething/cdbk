@@ -190,7 +190,7 @@ function cdbk () {
 # Auto-complete function
 # ----------------------
 function _cdbk() {
-  reply=($(cat "$ZSH_BOOKMARKS" | sed -e 's#^hash -d \(.*\)=.*$#\1#g') $(cat "$HOME/.zshrc" | grep "^hash -d" | sed -e 's#^hash -d \(.*\)=.*$#\1#g' 2>&1 ));
+  reply=($(cat "$ZSH_BOOKMARKS" | sed -e 's#^hash -d \(.*\)=.*$#\1#g') $(cat "$HOME/.zshrc" | grep "^hash -d" 2>&1 | sed -e 's#^hash -d \(.*\)=.*$#\1#g' ));
 }
 
 compctl -K _cdbk cdbk
