@@ -2,7 +2,9 @@
 # Last modified: 2014-09-05 12:14
 
 # Define location of bookmark file and source it every time this file is sourced
-ZSH_BOOKMARKS="$HOME/.zshbookmarks";
+if [[ -z "$ZSH_BOOKMARKS" ]]; then
+  ZSH_BOOKMARKS="$HOME/.zshbookmarks";
+fi
 
 if [ -e $ZSH_BOOKMARKS ]; then
   source $ZSH_BOOKMARKS;
@@ -20,8 +22,14 @@ function cdbk () {
   local BKMKNAME;
   local BKMKPATH;
   local MYPATH;
+  local CURBKMKS="";
+  local GLBLBKMKS=""
+
   CURBKMKS=(`grep -e "^hash -d" $ZSH_BOOKMARKS | sed 's#hash -d ##' | sed 's#=\(.*\)# \1#'`)
-  GLBLBKMKS=(`grep -e "^ *hash -d" $HOME/.zshrc | sed 's#hash -d ##' | sed 's#=\(.*\)# \1#'`)
+
+  if [[ -n "$HOME/.zshrc" ]]; then
+    GLBLBKMKS=(`grep -e "^ *hash -d" $HOME/.zshrc | sed 's#hash -d ##' | sed 's#=\(.*\)# \1#'`)
+  fi
 
   # Define usage
   local USAGE="-------------------------------------------------------------------------------
@@ -52,7 +60,7 @@ function cdbk () {
   elif [[ $# -lt 2 ]] || [[ $1 == "-h" ]]; then
     printf "$USAGE"
     printf "--------------------------------------------------------------------------------\n";
-    
+
   elif [[ $# -gt 3 ]]; then
     printf "Too many arguments\n\n"
     printf "Usage:\n\n"
@@ -98,7 +106,7 @@ function cdbk () {
       fi
 
     # Replace entry
-    elif  [[ $1 == "-r" ]]; then 
+    elif  [[ $1 == "-r" ]]; then
 
       # Check if path included, if not use current working directory
       if [[ $# -eq 3 ]]; then
@@ -106,15 +114,15 @@ function cdbk () {
       else
         MYPATH=$PWD;
       fi
-      
+
       # Check that bookmark isn't in either global file
       if [ $GLBLNAME ]; then
         printf "Bookmark %s is a global bookmark and cannot be replaced:\n    %s\n\nYou need to remove this manually first.\n" $2 $GLBLNAME;
       else
-            
+
         # Check that name definitely exists before proceeding
         if [ $BKMKNAME ]; then
-        
+
           # Check that path provided is actually a valid directory
           if [ -d $MYPATH ]; then
 
@@ -133,20 +141,20 @@ function cdbk () {
             echo "hash -d $2=$MYPATH" >> $ZSH_BOOKMARKS;
             hash -d $2=$MYPATH;
             printf "Can't replace, because %s isn't in the bookmark file! Creating new...\n\n" $2;
-            printf "Bookmark %s created for %s\n" $2 $MYPATH; 
+            printf "Bookmark %s created for %s\n" $2 $MYPATH;
           else
             printf "%s is not a valid directory, and %s isn't already in bookmark file\n" $MYPATH $2;
           fi
         fi
       fi
-     
-    # Delete unwanted entry 
-    elif  [[ $1 == "-d" ]]; then 
-      
+
+    # Delete unwanted entry
+    elif  [[ $1 == "-d" ]]; then
+
       # Check that name definitely exists before proceeding
       if [ $BKMKNAME ]; then
-      
-        while true; do                                   
+
+        while true; do
         echo "Do you really want to delete $2? (Y/n)";
           read YN_CHOICE;
           case $YN_CHOICE in
@@ -158,7 +166,7 @@ function cdbk () {
             [Nn]* ) printf "Did not delete %s\n" $2; break;;
                 * ) echo "Please answer yes or no.";;
           esac
-        done  
+        done
       else
         printf "Can't delete, because %s isn't in the bookmark file!\n" $2;
         printf "Current bookmarks:\n\n";
@@ -182,7 +190,7 @@ function cdbk () {
 # Auto-complete function
 # ----------------------
 function _cdbk() {
-  reply=($(cat "$ZSH_BOOKMARKS" | sed -e 's#^hash -d \(.*\)=.*$#\1#g') $(cat "$HOME/.zshrc" | grep "^hash -d" | sed -e 's#^hash -d \(.*\)=.*$#\1#g'));
+  reply=($(cat "$ZSH_BOOKMARKS" | sed -e 's#^hash -d \(.*\)=.*$#\1#g') $(cat "$HOME/.zshrc" | grep "^hash -d" | sed -e 's#^hash -d \(.*\)=.*$#\1#g' 2>&1 ));
 }
 
 compctl -K _cdbk cdbk
@@ -191,7 +199,7 @@ compctl -K _cdbk cdbk
 # folder_name function for custom prompt
 # ---------------------------------------
 function folder_name {
-  FOLDERNAME=$(grep -e "hash -d.*=\"*\'*$PWD\"*\'*"$ {"$ZSH_BOOKMARKS","$HOME"/.zshrc} | sed 's#^.*hash -d \([^=]*\)=.*$#~\1#' | xargs echo);
+  local FOLDERNAME=$(grep -e "hash -d.*=\"*\'*$PWD\"*\'*"$ {"$ZSH_BOOKMARKS","$HOME"/.zshrc} | sed 's#^.*hash -d \([^=]*\)=.*$#~\1#' | xargs echo);
   if [ $FOLDERNAME ]; then
     echo "${PR_LIGHT_CYAN}(${PR_LIGHT_WHITE}$FOLDERNAME${PR_LIGHT_CYAN})%{${reset_color}%}";
   elif [[ "$PWD" == "$MYZSH" ]]; then
@@ -208,3 +216,4 @@ function folder_name {
 # ---------------------------------------
 alias cdba='cdbk -a'
 alias cdbl='cdbk -l'
+
