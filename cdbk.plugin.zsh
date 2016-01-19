@@ -199,7 +199,7 @@ compctl -K _cdbk cdbk
 # folder_name function for custom prompt
 # ---------------------------------------
 function folder_name {
-  local FOLDERNAME=$(grep -e "hash -d.*=\"*\'*$PWD\"*\'*"$ {"$ZSH_BOOKMARKS","$HOME"/.zshrc} | sed 's#^.*hash -d \([^=]*\)=.*$#~\1#' | xargs echo);
+  local FOLDERNAME=$(grep -e "hash -d.*=\"*\'*$PWD\"*\'*"$ {"$ZSH_BOOKMARKS","$HOME"/.zshrc} 2>&1 | sed 's#^.*hash -d \([^=]*\)=.*$#~\1#' | xargs echo);
   if [ $FOLDERNAME ]; then
     echo "${PR_LIGHT_CYAN}(${PR_LIGHT_WHITE}$FOLDERNAME${PR_LIGHT_CYAN})%{${reset_color}%}";
   elif [[ "$PWD" == "$MYZSH" ]]; then
