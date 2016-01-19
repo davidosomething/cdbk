@@ -27,7 +27,7 @@ function cdbk () {
 
   CURBKMKS=(`grep -e "^hash -d" $ZSH_BOOKMARKS | sed 's#hash -d ##' | sed 's#=\(.*\)# \1#'`)
 
-  if [[ -n "$HOME/.zshrc" ]]; then
+  if [[ -f "$HOME/.zshrc" ]]; then
     GLBLBKMKS=(`grep -e "^ *hash -d" $HOME/.zshrc | sed 's#hash -d ##' | sed 's#=\(.*\)# \1#'`)
   fi
 
@@ -190,7 +190,10 @@ function cdbk () {
 # Auto-complete function
 # ----------------------
 function _cdbk() {
-  reply=($(cat "$ZSH_BOOKMARKS" | sed -e 's#^hash -d \(.*\)=.*$#\1#g') $(cat "$HOME/.zshrc" | grep "^hash -d" 2>&1 | sed -e 's#^hash -d \(.*\)=.*$#\1#g' ));
+  reply=(\
+    $( cat "$ZSH_BOOKMARKS" | sed -e 's#^hash -d \(.*\)=.*$#\1#g' ) \
+    $( [[ -f "$HOME/.zshrc" ]] && { cat "$HOME/.zshrc" | grep "^hash -d" 2>&1 | sed -e 's#^hash -d \(.*\)=.*$#\1#g' })\
+  );
 }
 
 compctl -K _cdbk cdbk
@@ -199,7 +202,7 @@ compctl -K _cdbk cdbk
 # folder_name function for custom prompt
 # ---------------------------------------
 function folder_name {
-  local FOLDERNAME=$(grep -e "hash -d.*=\"*\'*$PWD\"*\'*"$ {"$ZSH_BOOKMARKS","$HOME"/.zshrc} 2>&1 | sed 's#^.*hash -d \([^=]*\)=.*$#~\1#' | xargs echo);
+  local FOLDERNAME=$(grep -e "hash -d.*=\"*\'*$PWD\"*\'*"$ {"$ZSH_BOOKMARKS","$HOME/.zshrc"} 2>&1 | sed 's#^.*hash -d \([^=]*\)=.*$#~\1#' | xargs echo);
   if [ $FOLDERNAME ]; then
     echo "${PR_LIGHT_CYAN}(${PR_LIGHT_WHITE}$FOLDERNAME${PR_LIGHT_CYAN})%{${reset_color}%}";
   elif [[ "$PWD" == "$MYZSH" ]]; then
